@@ -9,11 +9,16 @@ public class GiraffeFeeder : MonoBehaviour
     public int applesRequired = 4;
 
     [Header("UI")]
-    public TextMeshProUGUI feedPromptText; 
+    public TextMeshProUGUI feedPromptText;
+
+    [Header("Yummy Text")]
+    public GameObject yummyText;        
+    public float yummyDuration = 2f;    
 
     [Header("Audio")]
-    public AudioSource audioSource;        
-    public AudioClip feedSound;            
+    public AudioSource audioSource;
+    public AudioClip feedSound;
+    public float feedSoundSeconds = 2f; 
 
     [Header("Optional")]
     public GameObject fedEffect;
@@ -26,6 +31,10 @@ public class GiraffeFeeder : MonoBehaviour
     {
         if (feedPromptText != null)
             feedPromptText.gameObject.SetActive(false);
+
+        
+        if (yummyText != null)
+            yummyText.SetActive(false);
     }
 
     private void Update()
@@ -44,9 +53,15 @@ public class GiraffeFeeder : MonoBehaviour
         {
             playerInventory.ConsumeApples(applesRequired);
 
+            // Play sound only if it exists
             if (audioSource != null && feedSound != null)
-                audioSource.PlayOneShot(feedSound);
-                StartCoroutine(StopAfterSeconds(2f));
+            {
+                audioSource.Stop();
+                audioSource.clip = feedSound;
+                audioSource.loop = false;
+                audioSource.Play();
+                StartCoroutine(StopAfterSeconds(feedSoundSeconds));
+            }
 
             if (fedEffect != null)
                 Instantiate(fedEffect, transform.position + Vector3.up * 2f, Quaternion.identity);
@@ -57,14 +72,17 @@ public class GiraffeFeeder : MonoBehaviour
                 feedPromptText.gameObject.SetActive(false);
 
             Debug.Log("Giraffe fed! 🦒");
+
+            StartCoroutine(ShowYummyText());
         }
     }
 
-IEnumerator StopAfterSeconds(float seconds)
-{
-    yield return new WaitForSeconds(seconds);
-    audioSource.Stop();
-}
+    private IEnumerator StopAfterSeconds(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        if (audioSource != null) audioSource.Stop();
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag("Player")) return;
@@ -82,5 +100,14 @@ IEnumerator StopAfterSeconds(float seconds)
 
         if (feedPromptText != null)
             feedPromptText.gameObject.SetActive(false);
+    }
+
+    private IEnumerator ShowYummyText()
+    {
+        if (yummyText == null) yield break;
+
+        yummyText.SetActive(true);
+        yield return new WaitForSeconds(yummyDuration);
+        yummyText.SetActive(false);
     }
 }

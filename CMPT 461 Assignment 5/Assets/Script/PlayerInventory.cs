@@ -34,7 +34,6 @@ public class PlayerInventory : MonoBehaviour
     public void ConsumeApples(int amount)
     {
         apples = Mathf.Max(0, apples - amount);
-        PlayCounterSound();
         UpdateUI();
     }
 
