@@ -1,12 +1,17 @@
 using UnityEngine;
 using TMPro;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class GiraffeFeeder : MonoBehaviour
 {
     [Header("Settings")]
     public KeyCode feedKey = KeyCode.E;
     public int applesRequired = 4;
+
+    [Header("Restart UI")]
+    public GameObject restartText;
+    public KeyCode restartKey = KeyCode.R;
 
     [Header("UI")]
     public TextMeshProUGUI feedPromptText;
@@ -35,47 +40,61 @@ public class GiraffeFeeder : MonoBehaviour
         
         if (yummyText != null)
             yummyText.SetActive(false);
+
+        if (restartText != null)
+            restartText.SetActive(false);
     }
 
     private void Update()
+{
+    if (!alreadyFed && restartText != null)
+        restartText.SetActive(false);
+
+    if (alreadyFed)
     {
-        if (alreadyFed) return;
-        if (!playerInRange) return;
-        if (playerInventory == null) return;
+        if (restartText != null)
+            restartText.SetActive(true);
 
-        // Show prompt only if enough apples
-        bool canFeed = playerInventory.apples >= applesRequired;
-        if (feedPromptText != null)
-            feedPromptText.gameObject.SetActive(canFeed);
-
-        // Press E to feed
-        if (canFeed && Input.GetKeyDown(feedKey))
+        if (Input.GetKeyDown(restartKey))
         {
-            playerInventory.ConsumeApples(applesRequired);
-
-            // Play sound only if it exists
-            if (audioSource != null && feedSound != null)
-            {
-                audioSource.Stop();
-                audioSource.clip = feedSound;
-                audioSource.loop = false;
-                audioSource.Play();
-                StartCoroutine(StopAfterSeconds(feedSoundSeconds));
-            }
-
-            if (fedEffect != null)
-                Instantiate(fedEffect, transform.position + Vector3.up * 2f, Quaternion.identity);
-
-            alreadyFed = true;
-
-            if (feedPromptText != null)
-                feedPromptText.gameObject.SetActive(false);
-
-            Debug.Log("Giraffe fed! 🦒");
-
-            StartCoroutine(ShowYummyText());
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
+
+        return;
     }
+
+    if (!playerInRange) return;
+    if (playerInventory == null) return;
+
+    bool canFeed = playerInventory.apples >= applesRequired;
+
+    if (feedPromptText != null)
+        feedPromptText.gameObject.SetActive(canFeed);
+
+    if (canFeed && Input.GetKeyDown(feedKey))
+    {
+        playerInventory.ConsumeApples(applesRequired);
+
+        if (audioSource != null && feedSound != null)
+        {
+            audioSource.Stop();
+            audioSource.clip = feedSound;
+            audioSource.loop = false;
+            audioSource.Play();
+            StartCoroutine(StopAfterSeconds(feedSoundSeconds));
+        }
+
+        if (fedEffect != null)
+            Instantiate(fedEffect, transform.position + Vector3.up * 2f, Quaternion.identity);
+
+        alreadyFed = true;
+
+        if (feedPromptText != null)
+            feedPromptText.gameObject.SetActive(false);
+
+        StartCoroutine(ShowYummyText());
+    }
+}
 
     private IEnumerator StopAfterSeconds(float seconds)
     {

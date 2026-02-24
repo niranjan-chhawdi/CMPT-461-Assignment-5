@@ -18,7 +18,7 @@ public class PlayerPickupAnimator : MonoBehaviour
         if (animator == null) return;
 
         Debug.Log("Pickup trigger fired on Animator: " + animator.gameObject.name);
-        animator.ResetTrigger("Pickup");   // helps if spammed
+        animator.ResetTrigger("Pickup");
         animator.SetTrigger("Pickup");
     }
 }
